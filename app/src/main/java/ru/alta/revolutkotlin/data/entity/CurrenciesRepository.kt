@@ -1,118 +1,103 @@
 package ru.alta.revolutkotlin.data.entity
 
-import java.util.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 object CurrenciesRepository {
 
-    private val currencies: List<Currency>
+    private val currenciesLiveData = MutableLiveData<List<Currency>>()
 
-    init {
-        currencies = listOf(
+    private val curencies: MutableList<Currency> = mutableListOf(
+
             Currency(
                 "AUD",
                 "100",
-                0xfff06292.toInt()
+                Currency.Color.WHITE
             ),
             Currency(
                 "BGN",
                 "200",
-                0xff9575cd.toInt()
+                Currency.Color.YELLOW
             ),
             Currency(
                 "BRL",
                 "300",
-                0xff64b5f6.toInt()
+                Currency.Color.GREEN
             ),
             Currency(
                 "CAD",
                 "400",
-                0xff4db6ac.toInt()
+                Currency.Color.BLUE
             ),
             Currency(
                 "CHF",
                 "500",
-                0xffb2ff59.toInt()
+                Currency.Color.VIOLET
             ),
             Currency(
                 "HRK",
                 "600",
-                0xffffeb3b.toInt()
+                Currency.Color.PINK
             ),
             Currency(
                 "JPY",
                 "700",
-                0xfff06292.toInt()
+                Currency.Color.WHITE
             ),
             Currency(
                 "ILS",
                 "800",
-                0xff9575cd.toInt()
+                Currency.Color.PINK
             ),
             Currency(
                 "KRW",
                 "900",
-                0xff64b5f6.toInt()
+                Currency.Color.VIOLET
             ),
             Currency(
                 "MYR",
                 "1000",
-                0xff4db6ac.toInt()
+                Currency.Color.BLUE
             ),
             Currency(
                 "AUD",
                 "100",
-                0xfff06292.toInt()
+                Currency.Color.GREEN
             ),
             Currency(
                 "BGN",
                 "200",
-                0xff9575cd.toInt()
-            ),
-            Currency(
-                "BRL",
-                "300",
-                0xff64b5f6.toInt()
-            ),
-            Currency(
-                "CAD",
-                "400",
-                0xff4db6ac.toInt()
-            ),
-            Currency(
-                "CHF",
-                "500",
-                0xffb2ff59.toInt()
-            ),
-            Currency(
-                "HRK",
-                "600",
-                0xffffeb3b.toInt()
-            ),
-            Currency(
-                "JPY",
-                "700",
-                0xfff06292.toInt()
-            ),
-            Currency(
-                "ILS",
-                "800",
-                0xff9575cd.toInt()
-            ),
-            Currency(
-                "KRW",
-                "900",
-                0xff64b5f6.toInt()
-            ),
-            Currency(
-                "MYR",
-                "1000",
-                0xff4db6ac.toInt()
+                Currency.Color.YELLOW
             )
         )
+
+    init {
+        currenciesLiveData.value = curencies
     }
 
-    fun getCurrencies(): List<Currency>{
-        return currencies
+    fun saveCurrency(currency: Currency){
+        addOrReplace(currency)
+        currenciesLiveData.value = curencies
+    }
+
+    private fun addOrReplace(currency: Currency){
+        val currencyTmp : Currency
+        for(i in curencies.indices){
+            if(curencies[i] == currency){
+                curencies[i] = currency
+                currencyTmp = currency
+                curencies.remove(curencies[i])
+                curencies.add(0,currencyTmp)
+                return
+            }
+        }
+
+        curencies.add(0,currency)
+    }
+
+
+    fun getCurrencies(): LiveData<List<Currency>> {
+        return currenciesLiveData
     }
 
 
