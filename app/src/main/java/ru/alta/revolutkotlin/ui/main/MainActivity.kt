@@ -1,42 +1,44 @@
-package ru.alta.revolutkotlin.ui
+package ru.alta.revolutkotlin.ui.main
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.alta.revolutkotlin.R
 import ru.alta.revolutkotlin.adapter.CurrenciesRvAdapter
-import ru.alta.revolutkotlin.model.MainViewModel
+import ru.alta.revolutkotlin.data.entity.Currency
+import ru.alta.revolutkotlin.ui.currency.CurrencyActivity
+import ru.alta.revolutkotlin.ui.base.BaseActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity<List<Currency>?, MainViewState>() {
 
-    lateinit var viewModel: MainViewModel
+    override val viewModel: MainViewModel by lazy {
+        ViewModelProvider(this).get(MainViewModel::class.java)
+    }
+
+    override val layoutRes = R.layout.activity_main
     lateinit var adapter: CurrenciesRvAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         setSupportActionBar(toolbar)
-
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         rv_currency.layoutManager = GridLayoutManager(this, 2)
         adapter = CurrenciesRvAdapter { currency ->
-            CurrencyActivity.start(this, currency)
+            CurrencyActivity.start(this, currency.title
+            )
         }
         rv_currency.adapter = adapter
 
-        viewModel.viewState().observe(this, Observer {
-            it?.let {
-                adapter.currencies = it.currencies
-            }
-        })
-
         fab.setOnClickListener {
             CurrencyActivity.start(this)
+        }
+    }
+
+    override fun renderData(data: List<Currency>?) {
+        data?.let {
+            adapter.currencies = it
         }
     }
 }
