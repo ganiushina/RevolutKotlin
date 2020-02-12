@@ -49,7 +49,7 @@ class CurrencyActivity : BaseActivity<Currency?, CurrencyViewState>() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_currency)
         setSupportActionBar(toolbar)
-        supportActionBar?.setDefaultDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
 
         val currencyName = intent.getStringExtra(EXTRA_CURRENCY)
