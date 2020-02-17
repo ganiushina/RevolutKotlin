@@ -23,7 +23,7 @@ class FireStoreProvider : RemoteDataProvider {
         get() = FirebaseAuth.getInstance().currentUser
 
        private val userCurrencyCollection: CollectionReference
-        get() = currentUser?.let {                                                                                                                                                                                                                                                                                                                                      //Я копипастил код с урока и не заметил эту надпись
+        get() = currentUser?.let {
             store.collection(USER_COLLECTION).document(it.uid).collection(CURRENCIES_COLLECTION)
         } ?: throw NoAuthException()
 

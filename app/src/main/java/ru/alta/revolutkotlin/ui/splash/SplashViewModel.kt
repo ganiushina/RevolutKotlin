@@ -8,7 +8,7 @@ import ru.alta.revolutkotlin.data.errors.NoAuthException
 class SplashViewModel() : BaseViewModel<Boolean?, SplashViewState>() {
 
     fun requestUser() {
-        CurrenciesRepository.getCurrentUser().observeForever {                                                                                                                                                                                                                           //Я копипастил код с урока и не заметил эту надпись
+        CurrenciesRepository.getCurrentUser().observeForever {
             viewStateLiveData.value = it?.let {
                 SplashViewState(authenticated = true)
             } ?: let {

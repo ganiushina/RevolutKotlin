@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import ru.alta.revolutkotlin.ui.base.BaseActivity
 import ru.alta.revolutkotlin.ui.main.MainActivity
 
-class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {                                                                                                                                                                                                                                                                                                            //Я копипастил код с урока и не заметил эту надпись
+class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {
 
     override val viewModel by lazy {
         ViewModelProvider(this).get(SplashViewModel::class.java)
