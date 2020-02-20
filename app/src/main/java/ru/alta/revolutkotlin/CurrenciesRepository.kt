@@ -11,5 +11,6 @@ object CurrenciesRepository {
     fun getCurrencies() = remoteProvider.subscribeToAllCurrencies()
     fun saveCurrency(currency: Currency) = remoteProvider.saveCurrency(currency)
     fun getCurrencyByName(name: String) = remoteProvider.getCurrencyByName(name)
+    fun getCurrentUser() = remoteProvider.getCurrentUser()
 
 }
