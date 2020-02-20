@@ -2,12 +2,12 @@ package ru.alta.revolutkotlin.ui.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import ru.alta.revolutkotlin.CurrenciesRepository
+import ru.alta.revolutkotlin.data.CurrenciesRepository
 import ru.alta.revolutkotlin.data.entity.Currency
 import ru.alta.revolutkotlin.model.CurrenciesResult
 import ru.alta.revolutkotlin.ui.base.BaseViewModel
 
-class MainViewModel() : BaseViewModel<List<Currency>?, MainViewState>() {
+class MainViewModel(private val currenciesRepository: CurrenciesRepository) : BaseViewModel<List<Currency>?, MainViewState>() {
 
     private val currenciesObserver = object : Observer<CurrenciesResult> {
         override fun onChanged(t: CurrenciesResult?) {
@@ -26,7 +26,7 @@ class MainViewModel() : BaseViewModel<List<Currency>?, MainViewState>() {
         }
     }
 
-    private val repositoryCurrency = CurrenciesRepository.getCurrencies()
+    private val repositoryCurrency = currenciesRepository.getCurrencies()
 
     init {
         viewStateLiveData.value = MainViewState()

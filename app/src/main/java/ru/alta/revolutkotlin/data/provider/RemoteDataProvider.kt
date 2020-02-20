@@ -11,4 +11,5 @@ interface RemoteDataProvider {
     fun getCurrencyByName(name: String): LiveData<CurrenciesResult>
     fun saveCurrency(currency: Currency): LiveData<CurrenciesResult>
     fun getCurrentUser(): LiveData<User?>
+    fun deleteCurrency(name: String): LiveData<CurrenciesResult>
 }
