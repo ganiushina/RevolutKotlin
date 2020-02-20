@@ -1,5 +1,6 @@
 package ru.alta.revolutkotlin.data.provider
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -10,17 +11,16 @@ import ru.alta.revolutkotlin.data.errors.NoAuthException
 import ru.alta.revolutkotlin.model.CurrenciesResult
 
 
-class FireStoreProvider : RemoteDataProvider {
+class FireStoreProvider (private val firebaseAuth: FirebaseAuth, private val store: FirebaseFirestore) : RemoteDataProvider {
 
     companion object {
         private const val CURRENCIES_COLLECTION = "currencies"
         private const val USER_COLLECTION = "users"
     }
 
-    private val store by lazy { FirebaseFirestore.getInstance() }
 
     private val currentUser
-        get() = FirebaseAuth.getInstance().currentUser
+        get() = firebaseAuth.currentUser
 
        private val userCurrencyCollection: CollectionReference
         get() = currentUser?.let {
@@ -76,6 +76,19 @@ class FireStoreProvider : RemoteDataProvider {
     override fun getCurrentUser() = MutableLiveData<User?>().apply {
         value = currentUser?.let { firebaseUser ->
             User(firebaseUser.displayName ?: "", firebaseUser.email ?: "")
+        }
+    }
+
+    override fun deleteCurrency(name: String): LiveData<CurrenciesResult> =MutableLiveData<CurrenciesResult>().apply {
+        try {
+            userCurrencyCollection.document(name).delete()
+                .addOnSuccessListener {
+                    value = CurrenciesResult.Success(null)
+                }.addOnFailureListener {
+                    value = CurrenciesResult.Error(it)
+                }
+        } catch (e: Throwable){
+            value = CurrenciesResult.Error(e)
         }
     }
 }
