@@ -37,7 +37,7 @@ class FireStoreProvider (private val firebaseAuth: FirebaseAuth, private val sto
                 } ?: let {
                     snapshot?.let { snapshot ->
                         value =
-                            CurrenciesResult.Success(snapshot.map { it.toObject(Currency::class.java) })
+                            CurrenciesResult.Success(snapshot.documents.map { it.toObject(Currency::class.java) })
                     }
                 }
             }

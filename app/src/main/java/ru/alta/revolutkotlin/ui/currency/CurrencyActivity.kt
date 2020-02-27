@@ -88,8 +88,7 @@ class CurrencyActivity : BaseActivity<CurrencyViewState.Data, CurrencyViewState>
             color = it
             saveCurrency()
         }
-
-        }
+    }
 
     private fun removeEditListener(){
         et_title.removeTextChangedListener(textChahgeListener)

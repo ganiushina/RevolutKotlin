@@ -1,5 +1,6 @@
 package ru.alta.revolutkotlin.model
 
+import androidx.annotation.VisibleForTesting
 import ru.alta.revolutkotlin.data.CurrenciesRepository
 import ru.alta.revolutkotlin.data.entity.Currency
 import ru.alta.revolutkotlin.ui.base.BaseViewModel
@@ -35,7 +36,8 @@ class CurrencyViewModel(private val currenciesRepository: CurrenciesRepository) 
         }
     }
 
-    override fun onCleared(){
+    @VisibleForTesting
+    public override fun onCleared(){
         pendingCurrency?.let {
             currenciesRepository.saveCurrency(it)
         }

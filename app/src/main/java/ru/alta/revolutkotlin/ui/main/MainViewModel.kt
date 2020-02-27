@@ -1,5 +1,6 @@
 package ru.alta.revolutkotlin.ui.main
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import ru.alta.revolutkotlin.data.CurrenciesRepository
@@ -35,7 +36,8 @@ class MainViewModel(private val currenciesRepository: CurrenciesRepository) : Ba
 
     fun viewState(): LiveData<MainViewState> = viewStateLiveData
 
-    override fun onCleared() {
+    @VisibleForTesting
+    public override fun onCleared() {
         repositoryCurrency.removeObserver(currenciesObserver)
         super.onCleared()
     }
