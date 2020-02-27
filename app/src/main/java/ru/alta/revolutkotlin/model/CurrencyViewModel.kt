@@ -1,45 +1,45 @@
 package ru.alta.revolutkotlin.model
 
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import ru.alta.revolutkotlin.CurrenciesRepository
+import androidx.annotation.VisibleForTesting
+import ru.alta.revolutkotlin.data.CurrenciesRepository
 import ru.alta.revolutkotlin.data.entity.Currency
 import ru.alta.revolutkotlin.ui.base.BaseViewModel
 import ru.alta.revolutkotlin.ui.currency.CurrencyViewState
-import ru.alta.revolutkotlin.ui.main.MainViewState
 
+class CurrencyViewModel(private val currenciesRepository: CurrenciesRepository) : BaseViewModel<CurrencyViewState.Data, CurrencyViewState>() {
 
-class CurrencyViewModel : BaseViewModel<Currency?, CurrencyViewState>() {
-
-    init {
-        viewStateLiveData.value = CurrencyViewState()
-    }
-
-    private var pendingCurrency: Currency? = null
+    private val pendingCurrency: Currency?
+        get() = viewStateLiveData.value?.data?.currency
 
     fun save(currency: Currency){
-        pendingCurrency = currency
+        viewStateLiveData.value = CurrencyViewState(CurrencyViewState.Data(currency = currency))
     }
 
     fun loadCurrency(name: String) {
-        CurrenciesRepository.getCurrencyByName(name).observeForever(object : Observer<CurrenciesResult> {
-            override fun onChanged(t: CurrenciesResult?) {
-                t ?: return
-                when (t) {
-                    is CurrenciesResult.Success<*> -> {
-                        viewStateLiveData.value = CurrencyViewState(currency = t.data as Currency)
-                    }
-                    is CurrenciesResult.Error -> {
-                        viewStateLiveData.value = CurrencyViewState(error = t.error)
-                    }
+        currenciesRepository.getCurrencyByName(name).observeForever { result ->
+            result?.let {
+                viewStateLiveData.value = when(result){
+                    is CurrenciesResult.Success<*> -> CurrencyViewState(CurrencyViewState.Data(currency = result.data as Currency))
+                    is CurrenciesResult.Error -> CurrencyViewState(error = result.error)
                 }
             }
-        })
+        }
+    }
+    fun deleteCurrency() {
+        pendingCurrency?.let {
+            currenciesRepository.deleteCurrency(it.title).observeForever { result ->
+                viewStateLiveData.value = when (result) {
+                    is CurrenciesResult.Success<*> -> CurrencyViewState(CurrencyViewState.Data(isDeleted = true))
+                    is CurrenciesResult.Error -> CurrencyViewState(error = result.error)
+                }
+            }
+        }
     }
 
-    override fun onCleared(){
+    @VisibleForTesting
+    public override fun onCleared(){
         pendingCurrency?.let {
-            CurrenciesRepository.saveCurrency(it)
+            currenciesRepository.saveCurrency(it)
         }
     }
 
