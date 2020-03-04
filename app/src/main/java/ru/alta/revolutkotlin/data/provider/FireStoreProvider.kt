@@ -5,10 +5,16 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import ru.alta.revolutkotlin.data.entity.Currency
 import ru.alta.revolutkotlin.data.entity.User
 import ru.alta.revolutkotlin.data.errors.NoAuthException
 import ru.alta.revolutkotlin.model.CurrenciesResult
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 
 class FireStoreProvider (private val firebaseAuth: FirebaseAuth, private val store: FirebaseFirestore) : RemoteDataProvider {
@@ -17,7 +23,6 @@ class FireStoreProvider (private val firebaseAuth: FirebaseAuth, private val sto
         private const val CURRENCIES_COLLECTION = "currencies"
         private const val USER_COLLECTION = "users"
     }
-
 
     private val currentUser
         get() = firebaseAuth.currentUser
@@ -29,66 +34,68 @@ class FireStoreProvider (private val firebaseAuth: FirebaseAuth, private val sto
 
 
 
-    override fun subscribeToAllCurrencies() = MutableLiveData<CurrenciesResult>().apply {
+    override fun subscribeToAllCurrencies(): ReceiveChannel<CurrenciesResult> = Channel<CurrenciesResult>(Channel.CONFLATED).apply {
+        var registration: ListenerRegistration? = null
         try {
-            userCurrencyCollection.addSnapshotListener { snapshot, e ->
-                e?.let {
-                    throw it
-                } ?: let {
-                    snapshot?.let { snapshot ->
-                        value =
-                            CurrenciesResult.Success(snapshot.documents.map { it.toObject(Currency::class.java) })
+            registration = userCurrencyCollection.addSnapshotListener { snapshot, e ->
+                val value = e?.let {
+                    CurrenciesResult.Error(it)
+                } ?: snapshot?.let { snapshot ->
+                        val currencies = snapshot.documents.map { it.toObject(Currency::class.java) }
+                        CurrenciesResult.Success(currencies)
                     }
-                }
+                value?.let { offer(it) }
             }
         } catch (e: Throwable) {
-            value = CurrenciesResult.Error(e)
+            offer(CurrenciesResult.Error(e))
+        }
+        invokeOnClose {
+            registration?.remove()
         }
     }
 
-    override fun getCurrencyByName(name: String) = MutableLiveData<CurrenciesResult>().apply {
+    override suspend fun getCurrencyByName(name: String): Currency? = suspendCoroutine { continuation ->
         try {
             userCurrencyCollection.document(name).get()
                 .addOnSuccessListener { snapshot ->
-                    value = CurrenciesResult.Success(snapshot.toObject(Currency::class.java))
+                    continuation.resume(snapshot.toObject(Currency::class.java))
                 }.addOnFailureListener {
-                    value = CurrenciesResult.Error(it)
+                    continuation.resumeWithException(it)
                 }
         } catch (e: Throwable) {
-            value = CurrenciesResult.Error(e)
+            continuation.resumeWithException(e)
         }
     }
 
 
-    override fun saveCurrency(currency: Currency)= MutableLiveData<CurrenciesResult>().apply {
+    override suspend fun saveCurrency(currency: Currency) : Currency = suspendCoroutine { continuation ->
         try {
             userCurrencyCollection.document(currency.title).set(currency)
                 .addOnSuccessListener {
-                    value = CurrenciesResult.Success(currency)
+                    continuation.resume(currency)
                 }.addOnFailureListener {
-                    value = CurrenciesResult.Error(it)
+                    continuation.resumeWithException(it)
                 }
         } catch (e: Throwable) {
-            value = CurrenciesResult.Error(e)
+            continuation.resumeWithException(e)
         }
     }
 
-    override fun getCurrentUser() = MutableLiveData<User?>().apply {
-        value = currentUser?.let { firebaseUser ->
-            User(firebaseUser.displayName ?: "", firebaseUser.email ?: "")
-        }
+    override suspend fun getCurrentUser(): User? = suspendCoroutine { continuation ->
+        val user = currentUser?.let { User(it.displayName ?: "", it.email ?: "") }
+        continuation.resume(user)
     }
 
-    override fun deleteCurrency(name: String): LiveData<CurrenciesResult> =MutableLiveData<CurrenciesResult>().apply {
+    override suspend fun deleteCurrency(name: String): Unit = suspendCoroutine { continuation ->
         try {
             userCurrencyCollection.document(name).delete()
                 .addOnSuccessListener {
-                    value = CurrenciesResult.Success(null)
+                    continuation.resume(Unit)
                 }.addOnFailureListener {
-                    value = CurrenciesResult.Error(it)
+                    continuation.resumeWithException(it)
                 }
         } catch (e: Throwable){
-            value = CurrenciesResult.Error(e)
+            continuation.resumeWithException(e)
         }
     }
 }

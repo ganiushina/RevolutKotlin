@@ -3,42 +3,31 @@ package ru.alta.revolutkotlin.ui.main
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import ru.alta.revolutkotlin.data.CurrenciesRepository
 import ru.alta.revolutkotlin.data.entity.Currency
 import ru.alta.revolutkotlin.model.CurrenciesResult
 import ru.alta.revolutkotlin.ui.base.BaseViewModel
 
-class MainViewModel(private val currenciesRepository: CurrenciesRepository) : BaseViewModel<List<Currency>?, MainViewState>() {
+class MainViewModel(currenciesRepository: CurrenciesRepository) : BaseViewModel<List<Currency>?>() {
 
-    private val currenciesObserver = object : Observer<CurrenciesResult> {
-        override fun onChanged(t: CurrenciesResult?) {
-            t ?: return
+    private val currencyChannel = currenciesRepository.getCurrencies()
 
-            when(t){
-                is CurrenciesResult.Success<*> -> {
-                    viewStateLiveData.value =
-                        MainViewState(currencies = t.data as? List<Currency>)
-                }
-                is CurrenciesResult.Error -> {
-                    viewStateLiveData.value =
-                        MainViewState(error = t.error)
+    init {
+        launch {
+            currencyChannel.consumeEach {
+                when(it){
+                    is CurrenciesResult.Success<*> -> setData(it.data as? List<Currency>)
+                    is CurrenciesResult.Error -> setError(it.error)
                 }
             }
         }
     }
 
-    private val repositoryCurrency = currenciesRepository.getCurrencies()
-
-    init {
-        viewStateLiveData.value = MainViewState()
-        repositoryCurrency.observeForever(currenciesObserver)
-    }
-
-    fun viewState(): LiveData<MainViewState> = viewStateLiveData
-
     @VisibleForTesting
     public override fun onCleared() {
-        repositoryCurrency.removeObserver(currenciesObserver)
+        currencyChannel.cancel()
         super.onCleared()
     }
 

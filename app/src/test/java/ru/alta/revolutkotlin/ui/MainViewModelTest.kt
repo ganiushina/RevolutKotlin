@@ -17,54 +17,54 @@ import ru.alta.revolutkotlin.ui.main.MainViewModel
 
 
 class MainViewModelTest {
-
-    @get:Rule
-    val taskExecutorRule = InstantTaskExecutorRule()
-
-    private val mockRepository = mockk<CurrenciesRepository>()
-    private val notesLiveData = MutableLiveData<CurrenciesResult>()
-
-    private lateinit var viewModel: MainViewModel
-
-
-    @Before
-    fun setup() {
-        clearMocks(mockRepository)
-        every { mockRepository.getCurrencies() } returns notesLiveData
-        viewModel = MainViewModel(mockRepository)
-    }
-
-
-    @Test
-    fun `should call getNotes`() {
-        verify(exactly = 1) { mockRepository.getCurrencies() }
-    }
-
-    @Test
-    fun `should return notes`() {
-        var result: List<Currency>? = null
-        val testData = listOf(Currency("1"), Currency("2"))
-        viewModel.getViewState().observeForever {
-            result = it.data
-        }
-        notesLiveData.value = CurrenciesResult.Success(testData)
-        assertEquals(testData, result)
-    }
-
-    @Test
-    fun `should return error`() {
-        var result: Throwable? = null
-        val testData = Throwable("error")
-        viewModel.getViewState().observeForever {
-            result = it?.error
-        }
-        notesLiveData.value = CurrenciesResult.Error(error = testData)
-        assertEquals(testData, result)
-    }
-
-    @Test
-    fun `should remove observer`() {
-        viewModel.onCleared()
-        assertFalse(notesLiveData.hasObservers())
-    }
+//
+//    @get:Rule
+//    val taskExecutorRule = InstantTaskExecutorRule()
+//
+//    private val mockRepository = mockk<CurrenciesRepository>()
+//    private val notesLiveData = MutableLiveData<CurrenciesResult>()
+//
+//    private lateinit var viewModel: MainViewModel
+//
+//
+//    @Before
+//    fun setup() {
+//        clearMocks(mockRepository)
+//        every { mockRepository.getCurrencies() } returns notesLiveData
+//        viewModel = MainViewModel(mockRepository)
+//    }
+//
+//
+//    @Test
+//    fun `should call getNotes`() {
+//        verify(exactly = 1) { mockRepository.getCurrencies() }
+//    }
+//
+//    @Test
+//    fun `should return notes`() {
+//        var result: List<Currency>? = null
+//        val testData = listOf(Currency("1"), Currency("2"))
+//        viewModel.getViewState().observeForever {
+//            result = it.data
+//        }
+//        notesLiveData.value = CurrenciesResult.Success(testData)
+//        assertEquals(testData, result)
+//    }
+//
+//    @Test
+//    fun `should return error`() {
+//        var result: Throwable? = null
+//        val testData = Throwable("error")
+//        viewModel.getViewState().observeForever {
+//            result = it?.error
+//        }
+//        notesLiveData.value = CurrenciesResult.Error(error = testData)
+//        assertEquals(testData, result)
+//    }
+//
+//    @Test
+//    fun `should remove observer`() {
+//        viewModel.onCleared()
+//        assertFalse(notesLiveData.hasObservers())
+//    }
 }

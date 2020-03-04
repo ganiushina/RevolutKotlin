@@ -19,7 +19,7 @@ import u.alta.revolutkotlin.common.getColorInt
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CurrencyActivity : BaseActivity<CurrencyViewState.Data, CurrencyViewState>() {
+class CurrencyActivity : BaseActivity<CurrencyData>() {
 
     companion object {
         private val EXTRA_CURRENCY = CurrencyActivity::class.java.name + "extra.Currency"
@@ -65,7 +65,7 @@ class CurrencyActivity : BaseActivity<CurrencyViewState.Data, CurrencyViewState>
         }
     }
 
-    override fun renderData(data: CurrencyViewState.Data) {
+    override fun renderData(data: CurrencyData) {
         if (data.isDeleted) finish()
         this.currency = data.currency
         initView()

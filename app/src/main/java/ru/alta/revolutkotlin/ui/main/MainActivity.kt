@@ -23,7 +23,7 @@ import ru.alta.revolutkotlin.ui.base.BaseActivity
 import ru.alta.revolutkotlin.ui.currency.CurrencyActivity
 import ru.alta.revolutkotlin.ui.splash.SplashActivity
 
-class MainActivity : BaseActivity<List<Currency>?, MainViewState>() {
+class MainActivity : BaseActivity<List<Currency>?>() {
 
     companion object {
         fun start(context: Context) = Intent(context, MainActivity::class.java).apply {

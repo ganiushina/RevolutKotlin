@@ -11,6 +11,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.selects.SelectClause1
+import org.jetbrains.anko.custom.async
+import org.jetbrains.anko.doAsync
 import org.junit.*
 import org.junit.Assert.*
 import ru.alta.revolutkotlin.data.entity.Currency
@@ -18,6 +23,9 @@ import ru.alta.revolutkotlin.data.provider.FireStoreProvider
 import ru.alta.revolutkotlin.data.errors.NoAuthException
 import ru.alta.revolutkotlin.model.CurrenciesResult
 import ru.alta.revolutkotlin.ui.main.LogoutDialog.Companion.TAG
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class FireStoreProviderTest {
 
@@ -68,65 +76,78 @@ class FireStoreProviderTest {
 
     @Test
     fun `should throw NoAuthException if no auth`() {
-        var result: Any? = null
-        every { mockAuth.currentUser } returns null
-        provider.subscribeToAllCurrencies().observeForever {
-            result = (it as? CurrenciesResult.Error)?.error
-        }
-        assertTrue(result is NoAuthException)
+//        var result: Any? = null
+//        every { mockAuth.currentUser } returns null
+//        provider.subscribeToAllCurrencies().observeForever {
+//            result = (it as? CurrenciesResult.Error)?.error
+//        }
+//        assertTrue(result is NoAuthException)
     }
 
     @Test
-    fun `saveNote calls set`() {
-        val mockDocumentReference = mockk<DocumentReference>()
-        every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
-        provider.saveCurrency(testCurrencies[0])
-        verify(exactly = 1) { mockDocumentReference.set(testCurrencies[0]) }
+    suspend fun `saveCurrency calls set`() {
+//        val mockDocumentReference = mockk<DocumentReference>()
+//        every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
+//        provider.saveCurrency(testCurrencies[0])
+//        verify(exactly = 1) { mockDocumentReference.set(testCurrencies[0]) }
     }
 
     @Test
-    fun `subscribe to all notes returns notes`() {
-        var result: List<Currency>? = null
+    suspend fun `subscribe to all notes returns notes`() {
+
+        var result: ReceiveChannel<CurrenciesResult>? = null
         val mockSnapshot = mockk<QuerySnapshot>()
         val slot = slot<EventListener<QuerySnapshot>>()
 
+        var registration: ListenerRegistration? = null
+
         every { mockSnapshot.documents } returns listOf(mockDocument1, mockDocument2, mockDocument3)
         every { mockResultCollection.addSnapshotListener(capture(slot)) } returns mockk()
-        provider.subscribeToAllCurrencies().observeForever{
-            result = (it as?  CurrenciesResult.Success<List<Currency>>)?.data
-        }
 
         slot.captured.onEvent(mockSnapshot, null)
         assertEquals(testCurrencies, result)
     }
 
     @Test
-    fun `deleteNote calls document delete`() {
-        val mockDocumentReference = mockk<DocumentReference>()
-        every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
-        provider.deleteCurrency(testCurrencies[0].title)
-        verify(exactly = 1) { mockDocumentReference.delete() }
+    suspend fun `deleteNote calls document delete`() {
+//        val mockDocumentReference = mockk<DocumentReference>()
+//        every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
+//        provider.deleteCurrency(testCurrencies[0].title)
+//        verify(exactly = 1) { mockDocumentReference.delete() }
     }
 
     @Test
-    fun `get currency by name returns currency`(){
+    suspend fun `get currency by name returns currency`(){
         var result: Currency? = null
-        val slot = slot<OnSuccessListener<DocumentSnapshot>>() // подсмотрела тип slot у одногруппника. Никак не могла подружить addOnSuccessListener и slot.
-            // пыталась создать val mockDocumentSnapshot = mockk<DocumentSnapshot>() - так тоже не работало.
-        val mockDocumentReference = mockk<DocumentReference>()
+        var mockContinuation: Continuation<DocumentSnapshot>? = null
+        val slot = slot<OnSuccessListener<DocumentSnapshot>>()
 
-        every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
+        val slot2 = slot<Continuation<DocumentSnapshot>>()
+
+
+        every {mockContinuation?.resume(mockDocument1) }  returns mockk()
 
         every {  mockResultCollection.document(testCurrencies[0].title).get().addOnSuccessListener(capture(slot))  } returns mockk()
 
-        provider.getCurrencyByName(testCurrencies[0].title). observeForever{
-            result = (it as?  CurrenciesResult.Success<Currency>)?.data
+        provider.getCurrencyByName(testCurrencies[0].title).doAsync {
+            mockContinuation?.resume(mockDocument1)
         }
         slot.captured.onSuccess(mockDocument1)
         assertEquals(testCurrencies[0], result)
-    //    assertEquals(mockDocumentReference, result) // почему так не работает?
 
     }
 
-    //TODO: Тест для getNoteById
+//    var result: Currency? = null
+//    val slot = slot<OnSuccessListener<DocumentSnapshot>>()
+//    val mockDocumentReference = mockk<DocumentReference>()
+//
+//    every { mockResultCollection.document(testCurrencies[0].title) } returns mockDocumentReference
+//
+//    every {  mockResultCollection.document(testCurrencies[0].title).get().addOnSuccessListener(capture(slot))  } returns mockk()
+//
+//    provider.getCurrencyByName(testCurrencies[0].title). observeForever{
+//        result = (it as?  CurrenciesResult.Success<Currency>)?.data
+//    }
+//    slot.captured.onSuccess(mockDocument1)
+//    Assert.assertEquals(testCurrencies[0], result)
 }

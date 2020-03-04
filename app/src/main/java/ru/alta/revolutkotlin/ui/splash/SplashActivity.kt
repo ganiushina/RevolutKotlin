@@ -7,7 +7,7 @@ import org.koin.android.viewmodel.ext.android.viewModel
 import ru.alta.revolutkotlin.ui.base.BaseActivity
 import ru.alta.revolutkotlin.ui.main.MainActivity
 
-class SplashActivity : BaseActivity<Boolean?, SplashViewState>() {
+class SplashActivity : BaseActivity<Boolean?>() {
 
     override val model: SplashViewModel by viewModel()
 
